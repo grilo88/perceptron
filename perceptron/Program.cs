@@ -3,6 +3,9 @@ float[] passos = new float[1] { 0.1F };
 float[] pesos = new float[] { 1, 1 };
 float[] neuronios = new float[1];
 float[] erros = new float[1];
+float[] grafico = new float[9];
+
+float[] last_entrada, last_esperados;
 
 Console.WriteLine($"Passos: {passos[0]:n2}");
 
@@ -21,7 +24,7 @@ while (true)
 
         if (!nao_treinar)
         {
-            Console.Write("Treinar qual modelo? função `And` = 1, função `OR` = 2: ");
+            Console.Write("Escolha o modelo; função `And` (1), função `OR` (2): ");
             input = Console.ReadLine();
 
             treinar_and = Convert.ToSByte(input) == 1;
@@ -39,27 +42,27 @@ while (true)
 if (!nao_treinar)
 {
     Console.WriteLine();
-    Console.WriteLine("Treinando neorônio");
-    Console.WriteLine("------------------");
+    Console.WriteLine("Treinando Neorônio Perceptron");
+    Console.WriteLine("-----------------------------");
     Console.WriteLine();
 
     if (treinar_or)
     {
         // Operador OR
 
-        Treinar(new float[] { 1, 1 }, new float[] { 1 }); // 1, 1, 1
-        Treinar(new float[] { 1, 0 }, new float[] { 1 }); // 1, 0, 1
-        Treinar(new float[] { 0, 1 }, new float[] { 1 }); // 0, 1, 1
-        Treinar(new float[] { 0, 0 }, new float[] { 0 }); // 0, 0, 0
+        TreinarIA(new float[] { 1, 1 }, new float[] { 1 }); // 1, 1, 1
+        TreinarIA(new float[] { 1, 0 }, new float[] { 1 }); // 1, 0, 1
+        TreinarIA(new float[] { 0, 1 }, new float[] { 1 }); // 0, 1, 1
+        TreinarIA(new float[] { 0, 0 }, new float[] { 0 }); // 0, 0, 0
     }
     if (treinar_and)
     {
         // Operador AND
 
-        Treinar(new float[] { 1, 1 }, new float[] { 1 }); // 1, 1, 1
-        Treinar(new float[] { 1, 0 }, new float[] { 0 }); // 1, 0, 0
-        Treinar(new float[] { 0, 1 }, new float[] { 0 }); // 0, 1, 0
-        Treinar(new float[] { 0, 0 }, new float[] { 0 }); // 0, 0, 0
+        TreinarIA(new float[] { 1, 1 }, new float[] { 1 }); // 1, 1, 1
+        TreinarIA(new float[] { 1, 0 }, new float[] { 0 }); // 1, 0, 0
+        TreinarIA(new float[] { 0, 1 }, new float[] { 0 }); // 0, 1, 0
+        TreinarIA(new float[] { 0, 0 }, new float[] { 0 }); // 0, 0, 0
     }
 }
 
@@ -71,16 +74,35 @@ while (true)
     try
     {
         float[] input = Console.ReadLine().Split(',').Select(x => Convert.ToSingle(x)).ToArray();
-        var entrada = input.Take(2).ToArray();
-        var esperado = input.Skip(2).ToArray();
-        var resultado = Neoronio(0, entrada, esperado);
+        var entrada = last_entrada = input.Take(2).ToArray();
+        var esperado = last_esperados = input.Skip(2).ToArray();
+        var resultado = Neuronio(0, entrada, esperado);
+
+        if (erros[0] == 1)
+        {
+            Console.Write("Corrigir IA? (Sim, Não): ");
+            var inpt = Console.ReadLine();
+
+            if (new string[] { "sim", "s" }.Any(x => x == inpt))
+            {
+                TreinarIA(last_entrada, last_esperados);
+            }
+        }
     }
     catch (Exception ex)
     {
     }
 }
 
-float[] Neoronio(int n, float[] entradas, float[] esperados)
+void Grafico()
+{
+    for (int i = 0; i < grafico.Length; i++)
+    {
+        grafico[i] = bias[0] - pesos[0] * (i - 4) / pesos[1];
+    }
+}
+
+float[] Neuronio(int n, float[] entradas, float[] esperados)
 {
     neuronios[n] = (pesos[0] * entradas[0]) + (pesos[1] * entradas[1]) + bias[0];
     
@@ -119,7 +141,7 @@ float[] Neoronio(int n, float[] entradas, float[] esperados)
     return ativacao;
 }
 
-void Treinar(float[] entradas, float[] esperados)
+void TreinarIA(float[] entradas, float[] esperados)
 {
     while (true)
     {
@@ -127,12 +149,12 @@ void Treinar(float[] entradas, float[] esperados)
         Console.WriteLine("".PadLeft(50, '-'));
 
         int n = 0;
-        float[] ativacao = Neoronio(n, entradas, esperados);
+        float[] ativacao = Neuronio(n, entradas, esperados);
 
         if (erros[n] == 1)
         {
             float[] db = new float[] {
-            erros[0] * passos[0]        // Delta Bias
+                erros[0] * passos[0]            // Delta Bias
             };
             Console.WriteLine($"Delta Bias: {db[0]}");
 
@@ -144,8 +166,8 @@ void Treinar(float[] entradas, float[] esperados)
 
             float[] new_entrada = new float[]
             {
-            entradas[0] + dw[0],
-            entradas[1] + dw[1]
+                entradas[0] + dw[0],
+                entradas[1] + dw[1]
             };
             Console.WriteLine($"New Entradas: {new_entrada[0]}, {new_entrada[1]}");
 
@@ -155,6 +177,8 @@ void Treinar(float[] entradas, float[] esperados)
 
             Console.WriteLine($"New Bias: {bias[0]}");
             Console.WriteLine($"New Pesos: {pesos[0]}, {pesos[1]}");
+
+            Grafico();
         }
         else
             break;
