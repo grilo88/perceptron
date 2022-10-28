@@ -1,4 +1,12 @@
-﻿float[] bias = new float[1] { -2 };
+﻿
+using perceptron;
+
+RedeNeuralArtificial redeNeural = new ();
+redeNeural.Iniciar();
+
+return;
+
+float[] bias = new float[1] { -2 };
 float[] passos = new float[1] { 0.1F };
 float[] pesos = new float[] { 1, 1 };
 float[] neuronios = new float[1];
